@@ -4,6 +4,8 @@
     use App\Http\Controllers\ProductController;
     use App\Http\Controllers\ProfileController;
     use Illuminate\Support\Facades\Route;
+    use App\Http\Controllers\ReviewController;
+
 
     Route::get('/', function () {
         return view('welcome');
@@ -22,6 +24,13 @@
 
 
     Route::resource('kdramas', KdramaController::class);
+
+    Route::post('/kdramas/{kdrama}/reviews', [ReviewController::class, 'store'])
+        ->name('reviews.store')
+//        Als een niet-ingelogde gebruiker nu probeert een review te plaatsen, wordt hij automatisch naar de inlogpagina gestuurd.
+
+
+        ->middleware('auth');
 
 
     Route::get('/contact-pagina', function() {

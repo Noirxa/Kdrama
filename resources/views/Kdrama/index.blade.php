@@ -2,58 +2,23 @@
 {{--<p>Genre: {{ $kdrama->genre }}</p>--}}
 {{--<p>Aantal afleveringen: {{ $kdrama->episodes }}</p>--}}
 
-@foreach($kdramas as $kdrama)
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-white leading-tight">
+            K-Dramas
+        </h2>
+    </x-slot>
 
-    <h1><a href="{{ route('kdramas.show', $kdrama) }}">{{ $kdrama->title }}</a></h1>
-{{--    <p>Genre: {{ $kdrama->genre }}</p>--}}
-{{--    <p>Release year: {{ $kdrama->release_year }}</p>--}}
-    <hr>
-
-@endforeach
-
-{{--<!DOCTYPE html>--}}
-{{--<html>--}}
-{{--<head>--}}
-{{--    <title>K-Dramas</title>--}}
-{{--</head>--}}
-{{--<body>--}}
-{{--<h1>Alle K-Dramas</h1>--}}
-{{--<ul>--}}
-{{--    @foreach($kdramas as $kdrama)--}}
-{{--        <li>--}}
-{{--            <h2>{{ $kdrama->title }} ({{ $kdrama->release_year }})</h2>--}}
-{{--            <p>{{ $kdrama->description }}</p>--}}
-{{--            <p><strong>Genre:</strong> {{ $kdrama->genre }}</p>--}}
-{{--            <img src="{{ $kdrama->image_url }}" alt="{{ $kdrama->title }}" width="150">--}}
-{{--        </li>--}}
-{{--    @endforeach--}}
-{{--</ul>--}}
-{{--</body>--}}
-{{--</html>--}}
+    <div class="p-6 bg-blue-900 text-white min-h-screen">
+        @foreach($kdramas as $kdrama)
+            <h1 class="text-xl font-semibold">
+                <a href="{{ route('kdramas.show', $kdrama) }}" class="text-white hover:text-blue-300">
+                    {{ $kdrama->title }}
+                </a>
+            </h1>
+            <hr class="border-gray-500 my-2">
+        @endforeach
+    </div>
+</x-app-layout>
 
 
-
-{{--test--}}
-
-{{--@foreach($kdramas as $kdrama)--}}
-{{--    <h2>{{ $kdrama->title }}</h2>--}}
-
-{{--    <ul>--}}
-{{--        @foreach($kdrama->getAttributes() as $key => $value)--}}
-{{--            @if($key === 'image_url')--}}
-{{--                <!-- Laat een echte afbeelding zien -->--}}
-{{--                <li>--}}
-{{--                    <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong><br>--}}
-{{--                    <img src="{{ $value }}" alt="{{ $kdrama->title }}" style="max-width:200px; height:auto;">--}}
-{{--                </li>--}}
-{{--            @else--}}
-{{--                <!-- Laat de andere gegevens als tekst zien -->--}}
-{{--                <li>--}}
-{{--                    <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}--}}
-{{--                </li>--}}
-{{--            @endif--}}
-{{--        @endforeach--}}
-{{--    </ul>--}}
-
-{{--    <hr>--}}
-{{--@endforeach--}}
