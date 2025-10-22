@@ -1,6 +1,4 @@
-{{--<h1>{{ $kdrama->title }}</h1>--}}
-{{--<p>Genre: {{ $kdrama->genre }}</p>--}}
-{{--<p>Aantal afleveringen: {{ $kdrama->episodes }}</p>--}}
+
 
 <x-app-layout>
     <x-slot name="header">

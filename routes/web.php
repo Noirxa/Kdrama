@@ -32,6 +32,10 @@
 
         ->middleware('auth');
 
+    Route::resource('reviews', ReviewController::class)->except(['index']);
+
+
+
 
     Route::get('/contact-pagina', function() {
         return 'This page is contacting us
