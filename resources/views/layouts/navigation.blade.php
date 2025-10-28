@@ -19,6 +19,11 @@
                     <x-nav-link :href="route('kdramas.index')" :active="request()->routeIs('kdramas.*')">
                         {{ __('Kdramas') }}
                     </x-nav-link>
+
+                    <x-nav-link :href="route('kdramas.create')" :active="request()->routeIs('kdramas.create*')">
+                        {{ __('Create') }}
+                    </x-nav-link>
+
                 </div>
             </div>
 
@@ -75,6 +80,10 @@
 
             <x-responsive-nav-link :href="route('kdramas.index')" :active="request()->routeIs('kdramas.*')">
                 {{ __('Kdramas') }}
+            </x-responsive-nav-link>
+
+            <x-responsive-nav-link :href="route('kdramas.create')" :active="request()->routeIs('kdramas.create*')">
+                {{ __('Create') }}
             </x-responsive-nav-link>
         </div>
 

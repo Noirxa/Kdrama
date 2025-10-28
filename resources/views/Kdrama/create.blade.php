@@ -48,9 +48,7 @@
             <p style="color:red;">{{ $message }}</p>
             @enderror
         </div>
-
-
-
+        
         <button type="submit"
                 style="background-color:#003399; color:white; padding:8px 16px; border:none; border-radius:5px; cursor:pointer;">
             Opslaan
