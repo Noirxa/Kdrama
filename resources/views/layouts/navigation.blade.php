@@ -20,10 +20,12 @@
                         {{ __('Kdramas') }}
                     </x-nav-link>
 
-                    <x-nav-link :href="route('kdramas.create')" :active="request()->routeIs('kdramas.create*')">
-                        {{ __('Create') }}
-                    </x-nav-link>
-
+                    <!-- Alleen tonen als gebruiker is ingelogd -->
+                    @auth
+                        <x-nav-link :href="route('kdramas.create')" :active="request()->routeIs('kdramas.create*')">
+                            {{ __('Create') }}
+                        </x-nav-link>
+                    @endauth
                 </div>
             </div>
 
@@ -82,15 +84,18 @@
                 {{ __('Kdramas') }}
             </x-responsive-nav-link>
 
-            <x-responsive-nav-link :href="route('kdramas.create')" :active="request()->routeIs('kdramas.create*')">
-                {{ __('Create') }}
-            </x-responsive-nav-link>
+            <!-- Alleen zichtbaar op mobiel als gebruiker is ingelogd -->
+            @auth
+                <x-responsive-nav-link :href="route('kdramas.create')" :active="request()->routeIs('kdramas.create*')">
+                    {{ __('Create') }}
+                </x-responsive-nav-link>
+            @endauth
         </div>
 
         <!-- Responsive Settings Options -->
         <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
             <div class="px-4">
-                <div class="font-medium text-base text-gray-800 dark:text-gray-200">{{ Auth::user()?->email ?? '' }}</div>
+                <div class="font-medium text-base text-gray-800 dark:text-gray-200">{{ Auth::user()?->name ?? '' }}</div>
                 <div class="font-medium text-sm text-gray-500">{{ Auth::user()?->email ?? '' }}</div>
             </div>
 

@@ -1,7 +1,6 @@
     <?php
 
     use App\Http\Controllers\KdramaController;
-    use App\Http\Controllers\ProductController;
     use App\Http\Controllers\ProfileController;
     use Illuminate\Support\Facades\Route;
     use App\Http\Controllers\ReviewController;
@@ -18,7 +17,7 @@
             'id' => $id
         ]);
     });
-    Route::resource('products', ProductController::class);
+    Route::resource('kdramas', KdramaController::class)->middleware('auth');
 
 //    Route::get('/kdrama', [KdramaController::class, 'index']);
 
