@@ -1,13 +1,17 @@
 <?php
 
 namespace App\Http\Requests\Auth;
-
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+
+// --- HIER TOEGEVOEGD ---
+use App\Models\User; // Nodig om de gebruiker handmatig op te zoeken
+use Illuminate\Support\Facades\Hash; // Nodig om het wachtwoord handmatig te checken
+// --- EINDE TOEVOEGING ---
 
 class LoginRequest extends FormRequest
 {
@@ -41,13 +45,39 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
+        // --- HET ORIGINELE 'Auth::attempt' BLOK IS VERVANGEN DOOR DIT: ---
 
+        // 1. Haal de 'email' en 'password' uit het formulier
+        $credentials = $this->only('email', 'password');
+
+        // 2. Zoek de gebruiker in de database op basis van e-mail
+        $user = User::where('email', $credentials['email'])->first();
+
+        // 3. Controleer of de gebruiker bestaat ÉN of het wachtwoord klopt
+        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
+
+            // Als het niet klopt, geef de standaard "mislukt" melding
+            RateLimiter::hit($this->throttleKey());
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                'email' => trans('auth.failed'), // "These credentials do not match..."
             ]);
         }
+
+        // 4. *** DE NIEUWE CHECK ***
+        //    Als de gebruiker wél klopt, controleer nu of 'is_active' true (1) is
+        if (! $user->is_active) {
+
+            // Zo nee, geef je EIGEN specifieke melding terug!
+            RateLimiter::hit($this->throttleKey()); // Telt ook als mislukte poging
+            throw ValidationException::withMessages([
+                'email' => 'Dit account is gedeactiveerd of verbannen.',
+            ]);
+        }
+
+        // 5. Alle checks zijn geslaagd. Log de gebruiker in.
+        Auth::login($user, $this->boolean('remember'));
+
+        // --- EINDE VAN HET VERVANGEN BLOK ---
 
         RateLimiter::clear($this->throttleKey());
     }

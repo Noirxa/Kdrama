@@ -11,8 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // 1. Maak de 'roles' tabel voor de rol-definities
+        Schema::create('roles', function (Blueprint $table) {
+            $table->id(); // Wordt 1 voor admin, 2 voor user
+            $table->string('name')->unique();
+            $table->timestamps();
+        });
+
+        // 2. Maak de 'users' tabel met de verwijzing (foreign key) naar 'roles'
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('role_id') // Voeg de role_id kolom toe
+            ->default(2)          // Standaard is 'user' (ID 2)
+            ->constrained();     // Koppel aan 'id' op 'roles' tabel
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
@@ -42,8 +53,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::dropIfExists('password_reset_tokens');
+        // Belangrijk: drop 'users' VOORDAT je 'roles' dropt
+        Schema::dropIfExists('users');
+        Schema::dropIfExists('roles');
     }
 };
