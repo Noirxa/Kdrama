@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Kdrama;
+// Je hoeft hier niets extra te importeren, 'authorize' zit in de base Controller.
 
 class KdramaController extends Controller
 {
@@ -11,7 +12,7 @@ class KdramaController extends Controller
      * Display a listing of the resource.
      */
 
-//    test
+    //    test
     public function index(Request $request)
     {
         // Start met een lege query
@@ -49,19 +50,29 @@ class KdramaController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-        public function create()
-        {
-            // Toon een formulier om een nieuwe kdrama toe te voegen
-            return view('kdrama.create');
+    public function create()
+    {
+        // <-- HIER TOEGEVOEGD
+        // Controleert de 'create' methode in KdramaPolicy.
+        // Gooit een 403 Forbidden error als de gebruiker
+        // nog geen 3x is ingelogd.
+        $this->authorize('create', Kdrama::class);
 
-        }
+        // Toon een formulier om een nieuwe kdrama toe te voegen
+        return view('kdrama.create');
+    }
 
-        /**
-         * Store a newly created resource in storage.
-         */
-
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
+        // <-- HIER OOK TOEGEVOEGD
+        // Dit is een extra beveiliging voor het geval iemand
+        // het formulier weet te posten zonder de 'create' pagina te bezoeken.
+        $this->authorize('create', Kdrama::class);
+
+        // --- Vanaf hier blijft je code hetzelfde ---
         $validatedData = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -80,14 +91,13 @@ class KdramaController extends Controller
     }
 
 
-        /**
+    /**
      * Display the specified resource.
      */
     public function show(Kdrama $kdrama)
     {
         // Toon een specifieke kdrama
         return view('kdrama.show', compact('kdrama'));
-
     }
 
     /**
@@ -95,7 +105,7 @@ class KdramaController extends Controller
      */
     public function edit(Kdrama $kdrama)
     {
-
+        // (Hier zou je in de toekomst $this->authorize('update', $kdrama); kunnen toevoegen)
     }
 
     /**
@@ -103,7 +113,7 @@ class KdramaController extends Controller
      */
     public function update(Request $request, Kdrama $kdrama)
     {
-
+        // (Hier zou je in de toekomst $this->authorize('update', $kdrama); kunnen toevoegen)
     }
 
     /**
@@ -111,6 +121,6 @@ class KdramaController extends Controller
      */
     public function destroy(Kdrama $kdrama)
     {
-
+        // (Hier zou je in de toekomst $this->authorize('delete', $kdrama); kunnen toevoegen)
     }
 }
