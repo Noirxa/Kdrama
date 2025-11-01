@@ -22,6 +22,24 @@
     </style>
 
     <div class="p-6 bg-blue-900 text-white min-h-screen">
+
+        {{-- 1. TOEGEVOEGD BLOK VOOR SUCCES- EN FOUTMELDINGEN --}}
+        {{-- Dit pakt de 'success' of 'error' berichten die we
+             vanuit de controller (met ->with()) meesturen. --}}
+        @if (session('success'))
+            <div class="mb-4 rounded-lg bg-green-500 p-4 text-sm text-white" role="alert">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="mb-4 rounded-lg bg-red-500 p-4 text-sm text-white" role="alert">
+                {{ session('error') }}
+            </div>
+        @endif
+        {{-- EINDE MELDINGEN BLOK --}}
+
+
         <!-- Zoek & Filter Formulier (gestyled zoals jouw voorbeeld) -->
         <form method="GET" action="{{ route('kdramas.index') }}" class="mb-6 flex flex-col sm:flex-row gap-3">
 

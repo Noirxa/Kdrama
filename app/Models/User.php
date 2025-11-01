@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany; // --- HIER TOEGEVOEGD ---
 
 class User extends Authenticatable
 {
@@ -45,4 +46,18 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // --- HIER TOEGEVOEGD ---
+
+    /**
+     * Definieert de relatie: Een User HEEFT VELE Kdramas.
+     *
+     * Dit vertelt Laravel dat deze 'User' kan worden gekoppeld aan
+     * meerdere records in het 'Kdrama' model.
+     */
+    public function kdramas(): HasMany
+    {
+        return $this->hasMany(Kdrama::class);
+    }
+    // --- EINDE TOEVOEGING ---
 }

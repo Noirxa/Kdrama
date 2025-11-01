@@ -4,7 +4,10 @@ namespace App\Policies;
 
 use App\Models\Kdrama;
 use App\Models\User;
-use App\Models\LoginHistory; // BELANGRIJK: Importeren
+use App\Models\LoginHistory;
+// 1. IMPORT VAN DB FACADE
+// Deze is nodig voor de 'DATE()' functie in de query
+use Illuminate\Support\Facades\DB;
 use Illuminate\Auth\Access\Response;
 
 class KdramaPolicy
@@ -27,15 +30,37 @@ class KdramaPolicy
 
     /**
      * Determine whether the user can create models.
-     * DIT IS DE BELANGRIJKE METHODE
+     * * 2. AANGEPASTE CREATE METHODE
+     * Dit is de bijgewerkte methode die voldoet aan de "verschillende dagen" eis.
      */
     public function create(User $user): bool
     {
-        // DIT IS DE VEREISTE ELOQUENT QUERY
-        $loginCount = LoginHistory::where('user_id', $user->id)->count();
+        // Bepaal de startdatum (vandaag - 30 dagen)
+        // Logins van langer geleden tellen niet meer mee (dit is het "aftellen")
+        $startDate = now()->subDays(30);
 
-        // Controleer of het aantal groter of gelijk is aan 3
-        return $loginCount >= 3;
+        // Haal het AANTAL UNIEKE DAGEN op waarop is ingelogd
+        $distinctLoginDays = LoginHistory::where('user_id', $user->id)
+            // Filter 1: Alleen logins van de afgelopen 30 dagen
+            ->where('created_at', '>=', $startDate)
+
+            // Selecteer alleen de datum (zonder tijd)
+            ->selectRaw('DATE(created_at) as date')
+
+            // Zorg dat we elke datum maar één keer krijgen
+            ->distinct()
+
+            // Haal de resultaten op
+            ->get();
+
+        // Tel het aantal unieke dagen dat we hebben gevonden
+        $loginCount = $distinctLoginDays->count();
+
+        // De eis is nu 5 (zoals in je schoolvoorbeeld)
+        $requiredLogins = 5;
+
+        // Geef true terug als het aantal gelijk of hoger is, anders false
+        return $loginCount >= $requiredLogins;
     }
 
     /**
@@ -70,3 +95,4 @@ class KdramaPolicy
         return false;
     }
 }
+

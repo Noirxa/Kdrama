@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Kdrama;
-// Je hoeft hier niets extra te importeren, 'authorize' zit in de base Controller.
+// 1. GATE FACADE IMPORTEREN
+// We hebben deze 'Gate' facade nodig om de policy-check handmatig
+// uit te voeren en zelf te kunnen bepalen wat er gebeurt (i.p.v. een 403-fout).
+use Illuminate\Support\Facades\Gate;
 
 class KdramaController extends Controller
 {
@@ -52,13 +55,19 @@ class KdramaController extends Controller
      */
     public function create()
     {
-        // <-- HIER TOEGEVOEGD
-        // Controleert de 'create' methode in KdramaPolicy.
-        // Gooit een 403 Forbidden error als de gebruiker
-        // nog geen 3x is ingelogd.
-        $this->authorize('create', Kdrama::class);
+        // 2. AUTORISATIE-CHECK (VERVANGEN)
+        // We controleren de 'create' policy. Als de gebruiker NIET mag (denies),
+        // voeren we het 'if'-blok uit.
+        if (Gate::denies('create', Kdrama::class)) {
 
-        // Toon een formulier om een nieuwe kdrama toe te voegen
+            // Stuur de gebruiker terug naar de index-pagina
+            return redirect()->route('kdramas.index')
+                // En geef een 'error' flits-bericht mee
+                ->with('error', 'Je moet op minimaal 5 verschillende dagen ingelogd hebben om een Kdrama te posten.');
+        }
+
+        // Als de 'if'-check niet wordt geraakt, mag de gebruiker door
+        // en tonen we het formulier.
         return view('kdrama.create');
     }
 
@@ -67,10 +76,13 @@ class KdramaController extends Controller
      */
     public function store(Request $request)
     {
-        // <-- HIER OOK TOEGEVOEGD
-        // Dit is een extra beveiliging voor het geval iemand
-        // het formulier weet te posten zonder de 'create' pagina te bezoeken.
-        $this->authorize('create', Kdrama::class);
+        // 3. AUTORISATIE-CHECK (VERVANGEN)
+        // We doen dezelfde controle hier als dubbele beveiliging.
+        if (Gate::denies('create', Kdrama::class)) {
+            // Stuur terug met dezelfde melding
+            return redirect()->route('kdramas.index')
+                ->with('error', 'Je moet minimaal 3 keer ingelogd hebben om een Kdrama te posten.');
+        }
 
         // --- Vanaf hier blijft je code hetzelfde ---
         $validatedData = $request->validate([
