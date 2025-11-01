@@ -23,7 +23,7 @@ class Kdrama extends Model
         'genre',
         'release_year',
         'image_url',
-        'user_id' // <-- HIER TOEGEVOEGD
+        'created_by',
     ];
 
     /**

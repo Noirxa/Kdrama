@@ -90,8 +90,7 @@ class KdramaController extends Controller
         // 4. EIGENAAR (USER_ID) OPSLAAN
         // Voeg de ID van de ingelogde gebruiker toe aan de data
         // voordat we het opslaan.
-        $validatedData['user_id'] = Auth::id();
-
+        $validatedData['created_by'] = Auth::id();
         // Maak het Kdrama aan MET de user_id
         Kdrama::create($validatedData);
 

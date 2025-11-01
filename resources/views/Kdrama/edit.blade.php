@@ -1,60 +1,66 @@
-<!-- resources/views/reviews/edit.blade.php -->
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+            {{ __('Review bewerken') }}
+        </h2>
+    </x-slot>
 
-<!-- Deze view toont een formulier om een bestaande review te bewerken. -->
-<!-- Het hoort bij de functie 'edit' in ReviewController. -->
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900 dark:text-gray-100">
 
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-    <meta charset="UTF-8">
-    <title>Review bewerken</title>
-    <!-- Bootstrap-styling (optioneel, voor mooiere knoppen en velden) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
+                    <a href="{{ route('kdramas.show', $review->kdrama_id) }}"
+                       class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-25 transition ease-in-out duration-150 mb-4">
+                        ← Terug naar K-Drama
+                    </a>
 
-<div class="container mt-5">
-    <h1 class="mb-4">Review bewerken</h1>
+                    @if ($errors->any())
+                        <div class="mb-4">
+                            <div class="font-medium text-red-600 dark:text-red-400">
+                                {{ __('Oeps! Er ging iets mis met je invoer:') }}
+                            </div>
+                            <ul class="mt-3 list-disc list-inside text-sm text-red-600 dark:text-red-400">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
 
-    <!-- Terugknop -->
-    <a href="{{ route('kdramas.show', $review->kdrama_id) }}" class="btn btn-secondary mb-3">← Terug naar K-Drama</a>
+                    <form action="{{ route('reviews.update', $review->id) }}" method="POST" class="mt-4 space-y-6">
+                        @csrf
+                        @method('PUT')
 
-    <!-- Toon validatiefouten als de gebruiker iets verkeerd invoert -->
-    @if ($errors->any())
-        <div class="alert alert-danger">
-            <strong>Oeps!</strong> Er ging iets mis met je invoer:
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
+                        <div>
+                            <x-input-label for="rating" :value="__('Beoordeling (rating)')" />
+                            <x-text-input id="rating" class="block mt-1 w-full"
+                                          type="number"
+                                          name="rating"
+                                          :value="old('rating', $review->rating)"
+                                          required
+                                          autofocus />
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Geef een cijfer (bijv: 8 voor een 8/10).</p>
+                            <x-input-error :messages="$errors->get('rating')" class="mt-2" />
+                        </div>
+
+                        <div>
+                            <x-input-label for="comment" :value="__('Opmerking (comment)')" />
+                            <textarea id="comment" name="comment" rows="4"
+                                      class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                      required>{{ old('comment', $review->comment) }}</textarea>
+                            <x-input-error :messages="$errors->get('comment')" class="mt-2" />
+                        </div>
+
+                        <div class="flex items-center justify-end">
+                            <x-primary-button>
+                                {{ __('Wijzigingen opslaan') }}
+                            </x-primary-button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
         </div>
-    @endif
-
-    <!-- Formulier om de review te updaten -->
-    <!-- De @method('PUT') is nodig omdat HTML geen PUT ondersteunt -->
-    <form action="{{ route('reviews.update', $review->id) }}" method="POST" class="card p-4 shadow-sm bg-white">
-        @csrf
-        @method('PUT')
-
-        <!-- Rating veld -->
-        <div class="mb-3">
-            <label for="rating" class="form-label">Beoordeling (rating)</label>
-            <input type="text" name="rating" id="rating" class="form-control"
-                   value="{{ old('rating', $review->rating) }}" required>
-            <small class="text-muted">Bijv: "5 sterren" of "Goed".</small>
-        </div>
-
-        <!-- Comment veld -->
-        <div class="mb-3">
-            <label for="comment" class="form-label">Opmerking (comment)</label>
-            <textarea name="comment" id="comment" class="form-control" rows="4" required>{{ old('comment', $review->comment) }}</textarea>
-        </div>
-
-        <!-- Opslaan knop -->
-        <button type="submit" class="btn btn-primary">Wijzigingen opslaan</button>
-    </form>
-</div>
-
-</body>
-</html>
+    </div>
+</x-app-layout>
