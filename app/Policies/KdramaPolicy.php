@@ -31,20 +31,14 @@ class KdramaPolicy
      */
     public function create(User $user): bool
     {
-        // <-- HIER IS DE AANPASSING
-        // We controleren op BEIDE mogelijke admin-kolommen:
-        // 1. Heet de kolom 'is_admin' en is die 1?
-        // 2. Of heet de kolom 'role_id' en is die 1? (gebaseerd op je data)
+        // Admin check (dit was al correct)
         if ($user->is_admin == 1 || $user->role_id == 1) {
             return true; // Admin mag altijd, sla de rest van de check over.
         }
-        // <-- EINDE AANPASSING
 
-        // <-- DIT IS DE NORMALE CHECK VOOR REGULIERE GEBRUIKERS
-        // Bepaal de startdatum (vandaag - 30 dagen)
+        // 5-dagen login check voor normale gebruikers (dit was al correct)
         $startDate = now()->subDays(30);
 
-        // Haal het AANTAL UNIEKE DAGEN op waarop is ingelogd
         $distinctLoginDays = LoginHistory::where('user_id', $user->id)
             ->where('created_at', '>=', $startDate)
             ->selectRaw('DATE(created_at) as date')
@@ -62,14 +56,14 @@ class KdramaPolicy
      */
     public function update(User $user, Kdrama $kdrama): bool
     {
-        // <-- OOK HIER AANGEPAST
+        // 1. Is de gebruiker een admin?
         if ($user->is_admin == 1 || $user->role_id == 1) {
             return true;
         }
 
-        // Normale check (bijv. is de gebruiker de eigenaar?)
-        // return $user->id === $kdrama->created_by;
-        return false;
+        // 2. Zo nee, is de gebruiker de eigenaar?
+        //    (Nu checken we de JUISTE kolom: 'created_by')
+        return $user->id === $kdrama->created_by;
     }
 
     /**
@@ -77,13 +71,13 @@ class KdramaPolicy
      */
     public function delete(User $user, Kdrama $kdrama): bool
     {
-        // <-- OOK HIER AANGEPAST
+        // 1. Is de gebruiker een admin?
         if ($user->is_admin == 1 || $user->role_id == 1) {
             return true;
         }
 
-        // return $user->id === $kdrama->created_by;
-        return false;
+        // 2. Zo nee, is de gebruiker de eigenaar?
+        return $user->id === $kdrama->created_by;
     }
 
     /**
@@ -91,11 +85,13 @@ class KdramaPolicy
      */
     public function restore(User $user, Kdrama $kdrama): bool
     {
-        // <-- OOK HIER AANGEPAST
+        // 1. Is de gebruiker een admin?
         if ($user->is_admin == 1 || $user->role_id == 1) {
             return true;
         }
-        return false;
+
+        // 2. Zo nee, is de gebruiker de eigenaar?
+        return $user->id === $kdrama->created_by;
     }
 
     /**
@@ -103,11 +99,12 @@ class KdramaPolicy
      */
     public function forceDelete(User $user, Kdrama $kdrama): bool
     {
-        // <-- OOK HIER AANGEPAST
+        // 1. Is de gebruiker een admin?
         if ($user->is_admin == 1 || $user->role_id == 1) {
             return true;
         }
-        return false;
+
+        // 2. Zo nee, is de gebruiker de eigenaar?
+        return $user->id === $kdrama->created_by;
     }
 }
-

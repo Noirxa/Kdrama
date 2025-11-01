@@ -51,7 +51,6 @@ class KdramaController extends Controller
     {
         // --- BEVEILIGING 1: DE "DIEPERE VALIDATIE" REGEL ---
         // We roepen de 'create' methode in KdramaPolicy aan.
-        // [Image van een kalender-icoon met een '5']
         if (Gate::denies('create', Kdrama::class)) {
             // Als de policy 'false' teruggeeft, stuur terug met je
             // specifieke foutmelding over de 5 login dagen.
@@ -87,11 +86,10 @@ class KdramaController extends Controller
             'image_url' => 'required|string|max:255',
         ]);
 
-        // 4. EIGENAAR (USER_ID) OPSLAAN
-        // Voeg de ID van de ingelogde gebruiker toe aan de data
-        // voordat we het opslaan.
+        // 4. EIGENAAR (CREATED_BY) OPSLAAN
+        // Dit was al correct.
         $validatedData['created_by'] = Auth::id();
-        // Maak het Kdrama aan MET de user_id
+        // Maak het Kdrama aan MET de 'created_by'
         Kdrama::create($validatedData);
 
         return redirect()->route('kdramas.index')
@@ -114,14 +112,10 @@ class KdramaController extends Controller
      */
     public function edit(Kdrama $kdrama)
     {
-        // --- BEVEILIGING 2: DE "OWASP" POORTWACHTER CHECK ---
-        // Dit is de handmatige eigenaar-check (de OWASP-eis).
-        // Is de ingelogde gebruiker NIET de eigenaar EN OOK GEEN admin?
-        // [Image van een slot-icoon]
-        if ($kdrama->user_id !== auth()->id() && auth()->user()->role_id != 1) {
-            // Zo ja, stop en geef een 'Verboden' fout.
-            abort(403, 'UNAUTHORIZED ACTION');
-        }
+        // --- BEVEILIGING 2: DE "POLICY" POORTWACHTER CHECK ---
+        // Deze ene regel roept de 'update' functie in je KdramaPolicy aan.
+        // Het checkt automatisch op Admin OF Eigenaar.
+        $this->authorize('update', $kdrama);
         // --- EINDE CHECK ---
 
         // Als de gebruiker door de check komt, toon de edit-pagina
@@ -133,11 +127,9 @@ class KdramaController extends Controller
      */
     public function update(Request $request, Kdrama $kdrama)
     {
-        // --- BEVEILIGING 2: DE "OWASP" POORTWACHTER CHECK ---
-        // Precies dezelfde handmatige check als in 'edit'.
-        if ($kdrama->user_id !== auth()->id() && auth()->user()->role_id != 1) {
-            abort(403, 'UNAUTHORIZED ACTION');
-        }
+        // --- BEVEILIGING 2: DE "POLICY" POORTWACHTER CHECK ---
+        // Precies dezelfde check als in 'edit'.
+        $this->authorize('update', $kdrama);
         // --- EINDE CHECK ---
 
         // --- Validatie ---
@@ -159,11 +151,9 @@ class KdramaController extends Controller
      */
     public function destroy(Kdrama $kdrama)
     {
-        // --- BEVEILIGING 2: DE "OWASP" POORTWACHTER CHECK ---
-        // Precies dezelfde handmatige check als in 'destroy'.
-        if ($kdrama->user_id !== auth()->id() && auth()->user()->role_id != 1) {
-            abort(403, 'UNAUTHORIZED ACTION');
-        }
+        // --- BEVEILIGING 2: DE "POLICY" POORTWACHTER CHECK ---
+        // Deze regel roept de 'delete' functie in je KdramaPolicy aan.
+        $this->authorize('delete', $kdrama);
         // --- EINDE CHECK ---
 
         // Als de check slaagt, verwijder het Kdrama
