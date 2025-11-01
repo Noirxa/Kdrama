@@ -4,24 +4,21 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Kdrama;
-// 1. GATE FACADE IMPORTEREN
-// We hebben deze 'Gate' facade nodig om de policy-check handmatig
-// uit te voeren en zelf te kunnen bepalen wat er gebeurt (i.p.v. een 403-fout).
-use Illuminate\Support\Facades\Gate;
+// 1. IMPORTEER BEIDE NODIGE KLASSEN
+use Illuminate\Support\Facades\Auth; // Nodig voor auth()->id()
+use Illuminate\Support\Facades\Gate; // Nodig voor de Gate::denies() check (de 5-dagen regel)
 
 class KdramaController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-
-    //    test
     public function index(Request $request)
     {
         // Start met een lege query
         $query = Kdrama::query();
 
-        // 🔍 Vrije tekst zoeken
+        // 🔍 Vrije tekst zoeken (dit blijft hetzelfde)
         if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
@@ -30,15 +27,12 @@ class KdramaController extends Controller
             });
         }
 
-        // 🎭 Filter op genre
+        // 🎭 Filter op genre (dit blijft hetzelfde)
         if ($request->filled('genre')) {
             $query->where('genre', $request->input('genre'));
         }
 
         // Haal gefilterde resultaten op
-        $kdramas = $query->get();
-
-
         // 👉 Toon 5 resultaten per pagina
         $kdramas = $query->paginate(5);
 
@@ -55,19 +49,18 @@ class KdramaController extends Controller
      */
     public function create()
     {
-        // 2. AUTORISATIE-CHECK (VERVANGEN)
-        // We controleren de 'create' policy. Als de gebruiker NIET mag (denies),
-        // voeren we het 'if'-blok uit.
+        // --- BEVEILIGING 1: DE "DIEPERE VALIDATIE" REGEL ---
+        // We roepen de 'create' methode in KdramaPolicy aan.
+        // [Image van een kalender-icoon met een '5']
         if (Gate::denies('create', Kdrama::class)) {
-
-            // Stuur de gebruiker terug naar de index-pagina
+            // Als de policy 'false' teruggeeft, stuur terug met je
+            // specifieke foutmelding over de 5 login dagen.
             return redirect()->route('kdramas.index')
-                // En geef een 'error' flits-bericht mee
                 ->with('error', 'Je moet op minimaal 5 verschillende dagen ingelogd hebben om een Kdrama te posten.');
         }
+        // --- EINDE CHECK ---
 
-        // Als de 'if'-check niet wordt geraakt, mag de gebruiker door
-        // en tonen we het formulier.
+        // Als de check slaagt, toon het formulier.
         return view('kdrama.create');
     }
 
@@ -76,15 +69,16 @@ class KdramaController extends Controller
      */
     public function store(Request $request)
     {
-        // 3. AUTORISATIE-CHECK (VERVANGEN)
-        // We doen dezelfde controle hier als dubbele beveiliging.
+        // --- BEVEILIGING 1 (DUBBELE CHECK) ---
+        // We doen dezelfde check hier voor het geval iemand
+        // het formulier direct probeert te POSTen.
         if (Gate::denies('create', Kdrama::class)) {
-            // Stuur terug met dezelfde melding
             return redirect()->route('kdramas.index')
-                ->with('error', 'Je moet minimaal 3 keer ingelogd hebben om een Kdrama te posten.');
+                ->with('error', 'Je moet op minimaal 5 verschillende dagen ingelogd hebben om een Kdrama te posten.');
         }
+        // --- EINDE CHECK ---
 
-        // --- Vanaf hier blijft je code hetzelfde ---
+        // --- Validatie ---
         $validatedData = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -93,9 +87,12 @@ class KdramaController extends Controller
             'image_url' => 'required|string|max:255',
         ]);
 
-        // Voeg automatisch de ingelogde gebruiker toe
-        $validatedData['created_by'] = auth()->id();
+        // 4. EIGENAAR (USER_ID) OPSLAAN
+        // Voeg de ID van de ingelogde gebruiker toe aan de data
+        // voordat we het opslaan.
+        $validatedData['user_id'] = Auth::id();
 
+        // Maak het Kdrama aan MET de user_id
         Kdrama::create($validatedData);
 
         return redirect()->route('kdramas.index')
@@ -108,7 +105,8 @@ class KdramaController extends Controller
      */
     public function show(Kdrama $kdrama)
     {
-        // Toon een specifieke kdrama
+        // Hiervoor hebben we 'return true' in de policy,
+        // dus geen extra check nodig.
         return view('kdrama.show', compact('kdrama'));
     }
 
@@ -117,7 +115,18 @@ class KdramaController extends Controller
      */
     public function edit(Kdrama $kdrama)
     {
-        // (Hier zou je in de toekomst $this->authorize('update', $kdrama); kunnen toevoegen)
+        // --- BEVEILIGING 2: DE "OWASP" POORTWACHTER CHECK ---
+        // Dit is de handmatige eigenaar-check (de OWASP-eis).
+        // Is de ingelogde gebruiker NIET de eigenaar EN OOK GEEN admin?
+        // [Image van een slot-icoon]
+        if ($kdrama->user_id !== auth()->id() && auth()->user()->role_id != 1) {
+            // Zo ja, stop en geef een 'Verboden' fout.
+            abort(403, 'UNAUTHORIZED ACTION');
+        }
+        // --- EINDE CHECK ---
+
+        // Als de gebruiker door de check komt, toon de edit-pagina
+        return view('kdramas.edit', ['kdrama' => $kdrama]);
     }
 
     /**
@@ -125,7 +134,25 @@ class KdramaController extends Controller
      */
     public function update(Request $request, Kdrama $kdrama)
     {
-        // (Hier zou je in de toekomst $this->authorize('update', $kdrama); kunnen toevoegen)
+        // --- BEVEILIGING 2: DE "OWASP" POORTWACHTER CHECK ---
+        // Precies dezelfde handmatige check als in 'edit'.
+        if ($kdrama->user_id !== auth()->id() && auth()->user()->role_id != 1) {
+            abort(403, 'UNAUTHORIZED ACTION');
+        }
+        // --- EINDE CHECK ---
+
+        // --- Validatie ---
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'genre' => 'required|string|max:255',
+            'release_year' => 'required|integer',
+            'image_url' => 'required|string|max:255',
+        ]);
+
+        $kdrama->update($validatedData);
+
+        return redirect()->route('kdramas.index')->with('success', 'Kdrama bijgewerkt!');
     }
 
     /**
@@ -133,6 +160,16 @@ class KdramaController extends Controller
      */
     public function destroy(Kdrama $kdrama)
     {
-        // (Hier zou je in de toekomst $this->authorize('delete', $kdrama); kunnen toevoegen)
+        // --- BEVEILIGING 2: DE "OWASP" POORTWACHTER CHECK ---
+        // Precies dezelfde handmatige check als in 'destroy'.
+        if ($kdrama->user_id !== auth()->id() && auth()->user()->role_id != 1) {
+            abort(403, 'UNAUTHORIZED ACTION');
+        }
+        // --- EINDE CHECK ---
+
+        // Als de check slaagt, verwijder het Kdrama
+        $kdrama->delete();
+
+        return redirect()->route('kdramas.index')->with('success', 'Kdrama verwijderd!');
     }
 }
