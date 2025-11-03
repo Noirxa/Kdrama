@@ -1,4 +1,3 @@
-
 {
     "$schema": "https://railway.app/railway.schema.json",
     "build": {
@@ -8,6 +7,11 @@
     "deploy": {
         "startCommand": "node /assets/scripts/prestart.mjs /assets/nginx.template.conf /nginx.conf && (php-fpm -y /assets/php-fpm.conf & nginx -c /nginx.conf)",
         "preDeployCommand": "php artisan config:cache && php artisan migrate --force"
-    }
+    },
+    "volumes": [
+        {
+            "mountPoint": "/app/storage"
+        }
+    ]
 }
 
