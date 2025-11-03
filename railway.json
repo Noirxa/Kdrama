@@ -1,35 +1,10 @@
 {
     "$schema": "https://railway.app/railway.schema.json",
     "build": {
-        "builder": "Nixpacks",
-        "buildCommand": "npm run build"
-    },
-    "deploy": {
-        "startCommand": "node /assets/scripts/prestart.mjs /assets/nginx.template.conf /nginx.conf && (php-fpm -y /assets/php-fpm.conf & nginx -c /nginx.conf)",
-        "preDeployCommand": "php artisan config:cache && php artisan migrate --force"
-    },
-    "volumes": [
-        {
-            "mountPoint": "/app/storage"
-        }
-    ],
-    "nixpacksConfig": {
-        "providers": [
-            "php"
-        ],
-        "php": {
-            "extensions": [
-                "pdo_mysql",
-                "mysqli",
-                "mbstring",
-                "bcmath",
-                "openssl",
-                "tokenizer",
-                "xmlwriter",
-                "xmlreader",
-                "ctype"
-            ]
+        "builder": "NIXPACKS",
+        "nixpacksConfig": {
+            "providers": ["php"],
+            "phpVersion": "8.3"
         }
     }
 }
-
